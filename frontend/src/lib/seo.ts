@@ -23,12 +23,16 @@ export function buildDatasetJsonLd(brand: Brand, recalls: Recall[]) {
       },
     ],
     variableMeasured: [
+      "recall_number",
       "event_id",
       "product_description",
+      "code_info",
       "reason_for_recall",
       "classification",
       "status",
       "report_date",
+      "distribution_pattern",
+      "product_quantity",
     ],
     numberOfItems: recalls.length,
   };

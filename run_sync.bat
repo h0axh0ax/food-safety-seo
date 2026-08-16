@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-python run_sync.py
+python scripts\run_sync.py
 pause

@@ -1,22 +1,97 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
+import { BrandListControls } from "@/components/BrandListControls";
+import { BrowseNav } from "@/components/BrowseNav";
+import { CategoryFilter } from "@/components/CategoryFilter";
 import { Disclaimer } from "@/components/Disclaimer";
-import { createClient } from "@/lib/supabase/server";
-import type { Brand } from "@/lib/types";
+import { sortBrandListItems, type BrandListItem } from "@/lib/brand-sort";
+import { CATEGORY_LABELS, isProductCategory } from "@/lib/categories";
+import {
+  filterBrandsByQuery,
+  getAllBrands,
+  getBrandsByCategory,
+} from "@/lib/data";
+import type { Brand, ProductCategory } from "@/lib/types";
 
-async function getBrands(): Promise<Brand[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("brands")
-    .select("*")
-    .order("total_recalls", { ascending: false });
-
-  if (error || !data) return [];
-  return data as Brand[];
+interface HomeProps {
+  searchParams: Promise<{ category?: string; q?: string }>;
 }
 
-export default async function Home() {
-  const brands = await getBrands();
+function BrandList({
+  items,
+  countLabel,
+  hrefForSlug,
+}: {
+  items: BrandListItem[];
+  countLabel: (count: number) => string;
+  hrefForSlug: (slug: string) => string;
+}) {
+  return (
+    <ul className="divide-y divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+      {items.map((item) => (
+        <li key={item.slug}>
+          <Link
+            href={hrefForSlug(item.slug)}
+            className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-zinc-50"
+          >
+            <span className="font-medium text-zinc-900">{item.name}</span>
+            <span className="shrink-0 text-sm text-zinc-500">
+              {countLabel(item.count)} →
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+  const activeCategory: ProductCategory | "all" = isProductCategory(
+    params.category,
+  )
+    ? params.category
+    : "all";
+  const searchQuery = params.q?.trim() ?? "";
+
+  const allBrands =
+    activeCategory === "all" ? await getAllBrands() : [];
+  const categoryBrands =
+    activeCategory !== "all" ? await getBrandsByCategory(activeCategory) : [];
+
+  let brandItems: BrandListItem[] = [];
+
+  if (activeCategory === "all") {
+    brandItems = allBrands.map((brand: Brand) => ({
+      slug: brand.slug,
+      name: brand.name,
+      count: brand.total_recalls,
+    }));
+  } else {
+    brandItems = categoryBrands.map((brand) => ({
+      slug: brand.slug,
+      name: brand.name,
+      count: brand.category_recall_count,
+    }));
+  }
+
+  const filteredItems = filterBrandsByQuery(brandItems, searchQuery);
+  const sortedItems = sortBrandListItems(filteredItems);
+
+  const countLabel =
+    activeCategory === "all"
+      ? (count: number) => `${count} recall${count === 1 ? "" : "s"}`
+      : (count: number) =>
+          `${count} recall${count === 1 ? "" : "s"} in category`;
+
+  const buildBrandHref = (slug: string) => {
+    if (activeCategory === "all") {
+      return `/recalls/${slug}`;
+    }
+    const href = `/recalls/${slug}?category=${activeCategory}`;
+    return searchQuery ? `${href}&q=${encodeURIComponent(searchQuery)}` : href;
+  };
 
   return (
     <div className="min-h-full bg-[#fafaf8]">
@@ -29,34 +104,75 @@ export default async function Home() {
             FDA Food Recall Directory
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-zinc-600">
-            Search official FDA food enforcement records by brand. All data is
-            sourced from the OpenFDA API and displayed without modification.
+            Choose a product type, then select a brand to view official FDA
+            recall records.
           </p>
         </div>
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-10">
-        {brands.length === 0 ? (
+        <BrowseNav active="directory" />
+        <CategoryFilter active={activeCategory} />
+
+        <Suspense fallback={null}>
+          <BrandListControls mode={activeCategory} />
+        </Suspense>
+
+        <p className="mb-4 text-sm text-zinc-600">
+          {searchQuery ? (
+            <>
+              {sortedItems.length} of {brandItems.length} brands matching
+              &ldquo;{searchQuery}&rdquo;
+              {activeCategory !== "all" ? (
+                <>
+                  {" "}
+                  in{" "}
+                  <span className="font-medium text-zinc-900">
+                    {CATEGORY_LABELS[activeCategory]}
+                  </span>
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {brandItems.length} brands
+              {activeCategory !== "all" ? (
+                <>
+                  {" "}
+                  with{" "}
+                  <span className="font-medium text-zinc-900">
+                    {CATEGORY_LABELS[activeCategory]}
+                  </span>{" "}
+                  recalls
+                </>
+              ) : (
+                " with FDA recall records"
+              )}
+              {" · sorted by most recalls"}
+            </>
+          )}
+        </p>
+
+        {brandItems.length === 0 ? (
           <p className="rounded-xl border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-500">
-            No brands in the database yet. Run the sync script to populate data.
+            {activeCategory === "all"
+              ? "No brands in the database yet. Run the sync script to populate data."
+              : "No brands in this category yet. Run sync after adding the primary_category column."}
+          </p>
+        ) : sortedItems.length === 0 ? (
+          <p className="rounded-xl border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-500">
+            No brands matching &ldquo;{searchQuery}&rdquo;
+            {activeCategory !== "all"
+              ? ` in ${CATEGORY_LABELS[activeCategory]}`
+              : ""}
+            .
           </p>
         ) : (
-          <ul className="divide-y divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-            {brands.map((brand) => (
-              <li key={brand.slug}>
-                <Link
-                  href={`/recalls/${brand.slug}`}
-                  className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-zinc-50"
-                >
-                  <span className="font-medium text-zinc-900">{brand.name}</span>
-                  <span className="text-sm text-zinc-500">
-                    {brand.total_recalls} recall
-                    {brand.total_recalls === 1 ? "" : "s"} →
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <BrandList
+            items={sortedItems}
+            countLabel={countLabel}
+            hrefForSlug={buildBrandHref}
+          />
         )}
 
         <div className="mt-10">

@@ -45,7 +45,7 @@ This project is an automated Programmatic SEO (pSEO) platform designed to captur
 ## Cursor Coding & Style Guidelines
 
 ### General Guidelines
-1. **Language:** Write code exclusively in TypeScript for Frontend (`frontend/`) and Python for Data Pipeline (`scripts/`).
+1. **Language:** Write code exclusively in TypeScript for the Next.js app (`frontend/`) and Python for the data pipeline (`scripts/`). Run `npm run dev` from the project root.
 2. **Zero Hallucination on Official Data:** NEVER modify or summarize official FDA records (e.g., `product_description`, `reason_for_recall`). Display raw official strings accurately.
 3. **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY` in frontend code, and `.env` for Python scripts. Never hardcode API keys or database credentials.
 

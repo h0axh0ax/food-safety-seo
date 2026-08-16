@@ -12,23 +12,42 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_OUTPUT = PROJECT_ROOT / "fda_sample.json"
 API_BASE = "https://api.fda.gov/food/enforcement.json"
 FIELDS = (
     "event_id",
+    "recall_number",
     "recalling_firm",
     "product_description",
     "reason_for_recall",
     "classification",
     "status",
     "report_date",
+    "distribution_pattern",
+    "code_info",
+    "more_code_info",
+    "product_quantity",
+    "voluntary_mandated",
+    "recall_initiation_date",
+    "initial_firm_notification",
+    "product_type",
+    "city",
+    "state",
+    "country",
+    "address_1",
+    "address_2",
+    "center_classification_date",
+    "termination_date",
 )
-OUTPUT_FILE = "fda_sample.json"
+OUTPUT_FILE = str(DEFAULT_OUTPUT)
 PAGE_LIMIT = 1000
 SLEEP_SECONDS = 0.5
 ENV_API_KEY = "OPENFDA_API_KEY"
+FULL_HISTORY_START = "20120620"
 
 
-def load_dotenv(path: Path = Path(".env")) -> None:
+def load_dotenv(path: Path = PROJECT_ROOT / ".env") -> None:
     if not path.is_file():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -63,6 +82,11 @@ def parse_args() -> argparse.Namespace:
         help=f"openFDA API key (overrides {ENV_API_KEY} env var)",
     )
     parser.add_argument(
+        "--full",
+        action="store_true",
+        help=f"Fetch full history from {FULL_HISTORY_START} to today (batched by year)",
+    )
+    parser.add_argument(
         "--days",
         type=int,
         default=30,
@@ -85,6 +109,18 @@ def date_range_past_days(days: int) -> tuple[str, str]:
     end = datetime.now()
     start = end - timedelta(days=days)
     return start.strftime("%Y%m%d"), end.strftime("%Y%m%d")
+
+
+def full_history_ranges() -> list[tuple[str, str, str]]:
+    today = datetime.now().strftime("%Y%m%d")
+    current_year = datetime.now().year
+    ranges: list[tuple[str, str, str]] = [("2012", FULL_HISTORY_START, "20121231")]
+
+    for year in range(2013, current_year):
+        ranges.append((str(year), f"{year}0101", f"{year}1231"))
+
+    ranges.append((str(current_year), f"{current_year}0101", today))
+    return ranges
 
 
 def extract_fields(record: dict) -> dict:
@@ -112,7 +148,7 @@ def fetch_all_pages(api_key: str, search: str, label: str) -> list[dict]:
         request = urllib.request.Request(url, headers={"Accept": "application/json"})
 
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with urllib.request.urlopen(request, timeout=60) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
@@ -145,13 +181,48 @@ def fetch_all_pages(api_key: str, search: str, label: str) -> list[dict]:
     return records
 
 
-def merge_by_event_id(*groups: list[dict]) -> list[dict]:
+def record_key(record: dict) -> str | None:
+    recall_number = str(record.get("recall_number") or "").strip()
+    if recall_number:
+        return recall_number
+    event_id = str(record.get("event_id") or "").strip()
+    product = str(record.get("product_description") or "").strip()
+    if event_id and product:
+        return f"{event_id}:{product}"
+    return event_id or None
+
+
+def merge_by_record_key(*groups: list[dict]) -> list[dict]:
     merged: dict[str, dict] = {}
     for group in groups:
         for record in group:
-            event_id = str(record.get("event_id") or "").strip()
-            if event_id:
-                merged[event_id] = record
+            key = record_key(record)
+            if key:
+                merged[key] = record
+    return list(merged.values())
+
+
+def merge_by_event_id(*groups: list[dict]) -> list[dict]:
+    return merge_by_record_key(*groups)
+
+
+def fetch_full_history(api_key: str) -> list[dict]:
+    merged: dict[str, dict] = {}
+
+    print(f"Full history backfill: {FULL_HISTORY_START} to today (by year)")
+    for label, start_date, end_date in full_history_ranges():
+        search = f"report_date:[{start_date} TO {end_date}]"
+        batch = fetch_all_pages(
+            api_key,
+            search,
+            f"{label} report_date {start_date} to {end_date}",
+        )
+        for record in batch:
+            key = record_key(record)
+            if key:
+                merged[key] = record
+        print(f"  cumulative unique records: {len(merged)}")
+
     return list(merged.values())
 
 
@@ -160,24 +231,27 @@ def main() -> None:
     args = parse_args()
     api_key = resolve_api_key(args.api_key)
 
-    start_date, end_date = date_range_past_days(args.days)
-    date_search = f"report_date:[{start_date} TO {end_date}]"
-    date_records = fetch_all_pages(
-        api_key,
-        date_search,
-        f"report_date {start_date} to {end_date}",
-    )
-
-    all_records = date_records
-
-    if args.include_ongoing:
-        ongoing_records = fetch_all_pages(
+    if args.full:
+        all_records = fetch_full_history(api_key)
+        print(f"Full history total (deduped by recall_number): {len(all_records)}")
+    else:
+        start_date, end_date = date_range_past_days(args.days)
+        date_search = f"report_date:[{start_date} TO {end_date}]"
+        date_records = fetch_all_pages(
             api_key,
-            'status:"Ongoing"',
-            "all Ongoing recalls (status refresh)",
+            date_search,
+            f"report_date {start_date} to {end_date}",
         )
-        all_records = merge_by_event_id(date_records, ongoing_records)
-        print(f"Merged total (deduped by event_id): {len(all_records)}")
+        all_records = date_records
+
+        if args.include_ongoing:
+            ongoing_records = fetch_all_pages(
+                api_key,
+                'status:"Ongoing"',
+                "all Ongoing recalls (status refresh)",
+            )
+            all_records = merge_by_event_id(date_records, ongoing_records)
+            print(f"Merged total (deduped by recall_number): {len(all_records)}")
 
     output_path = Path(args.output)
     with output_path.open("w", encoding="utf-8") as file:
