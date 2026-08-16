@@ -1,0 +1,58 @@
+Project Context: Automated pSEO data pipeline for food safety.
+Rules:
+1. Primary language: Python for backend scripts, TypeScript/Next.js for frontend.
+2. Data processing rule: STRICTLY zero subjective modification or paraphrasing on official FDA records.
+
+# Food Safety pSEO Platform - Project Specification
+
+## Project Overview
+This project is an automated Programmatic SEO (pSEO) platform designed to capture official food recall data, clean and store it, and dynamically render high-ranking SEO pages.
+- **Core Value:** Provide fast, clear, and structured food safety/recall lookup pages for consumers and parents searching for specific brand recall information.
+- **Primary Data Source:** OpenFDA Food Enforcement API (`https://api.fda.gov/food/enforcement.json`).
+
+---
+
+## Technical Stack
+- **Backend & Data Pipeline:** Python 3.10+ (`supabase-py`, `python-dotenv`)
+- **Database:** Supabase (PostgreSQL)
+- **Frontend Framework:** Next.js (App Router), TypeScript, Tailwind CSS
+- **Deployment Platform:** Vercel
+
+---
+
+## Database Architecture (Supabase)
+
+### 1. `public.brands`
+- `id`: `BIGINT` (Primary Key, Auto Increment)
+- `name`: `TEXT` (Original Firm Name)
+- `slug`: `TEXT UNIQUE` (URL-friendly lowercased slug, e.g., `gerber`)
+- `total_recalls`: `INT` (Aggregated count of recall events)
+- `created_at`: `TIMESTAMP WITH TIME ZONE`
+
+### 2. `public.recalls`
+- `id`: `BIGINT` (Primary Key, Auto Increment)
+- `event_id`: `TEXT UNIQUE` (FDA Official Event ID for deduplication)
+- `brand_slug`: `TEXT` (Foreign Key referencing `brands.slug` on delete cascade)
+- `product_description`: `TEXT` (Detailed product name, batch/UPC code)
+- `reason_for_recall`: `TEXT` (Official recall reason)
+- `classification`: `TEXT` (Class I, Class II, or Class III)
+- `status`: `TEXT` (Ongoing or Terminated)
+- `report_date`: `DATE`
+- `created_at`: `TIMESTAMP WITH TIME ZONE`
+
+---
+
+## Cursor Coding & Style Guidelines
+
+### General Guidelines
+1. **Language:** Write code exclusively in TypeScript for Frontend (`frontend/`) and Python for Data Pipeline (`scripts/`).
+2. **Zero Hallucination on Official Data:** NEVER modify or summarize official FDA records (e.g., `product_description`, `reason_for_recall`). Display raw official strings accurately.
+3. **Environment Variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY` in frontend code, and `.env` for Python scripts. Never hardcode API keys or database credentials.
+
+### Frontend & SEO Guidelines
+1. **Routing Strategy:** Dynamic routes must follow `/recalls/[brand_slug]/page.tsx`.
+2. **Server Components:** Prefer Server Components for data fetching to ensure fast initial page renders and high SEO crawler readability.
+3. **SEO Best Practices:**
+   - Always export dynamic `generateMetadata()` for every route.
+   - Inject Structured Data (`Dataset` and `FAQPage` via `<script type="application/ld+json">`).
+   - Include legal disclaimers stating data is sourced directly from OpenFDA and does not constitute medical or legal advice.
