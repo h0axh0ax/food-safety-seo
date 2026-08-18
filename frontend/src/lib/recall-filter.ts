@@ -55,10 +55,10 @@ export function groupRecallsByYear(
     .map(([year, items]) => ({ year, recalls: items }));
 }
 
-export function groupRecallsByDate(
-  recalls: Recall[],
-): Array<{ date: string; recalls: Recall[] }> {
-  const groups = new Map<string, Recall[]>();
+export function groupRecallsByDate<T extends Recall>(
+  recalls: T[],
+): Array<{ date: string; recalls: T[] }> {
+  const groups = new Map<string, T[]>();
 
   for (const recall of recalls) {
     const date = recall.report_date?.trim() || "unknown";
