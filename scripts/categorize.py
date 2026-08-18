@@ -144,6 +144,37 @@ CATEGORY_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
             "pizza",
         ),
     ),
+    (
+        # Last explicit rule: only leftover "other" records can match.
+        "condiments",
+        (
+            "sauce",
+            "dressing",
+            "seasoning",
+            "spice",
+            "vinegar",
+            "ketchup",
+            "mustard",
+            "mayonnaise",
+            "mayo ",
+            "salsa",
+            "condiment",
+            "olive oil",
+            "cooking oil",
+            "vegetable oil",
+            "canola oil",
+            "sesame oil",
+            "soybean oil",
+            "marinade",
+            "relish",
+            "gravy",
+            "masala",
+            "sazon",
+            "cumin",
+            "paprika",
+            "oregano",
+        ),
+    ),
 )
 
 DEFAULT_CATEGORY = "other"
@@ -158,6 +189,7 @@ CATEGORY_LABELS: dict[str, str] = {
     "snacks_bakery": "Snacks & Bakery",
     "grains_prepared": "Grains & Prepared Foods",
     "frozen_prepared": "Frozen & Prepared Meals",
+    "condiments": "Condiments & Seasonings",
     "other": "Other",
 }
 

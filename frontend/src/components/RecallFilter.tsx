@@ -14,7 +14,7 @@ type RecallFilterProps = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-700/20";
+  "w-full rounded-xl border border-stone-200/80 bg-white/90 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-800/15";
 
 export function RecallFilter({
   brandSlug,
@@ -39,6 +39,7 @@ export function RecallFilter({
     const params = new URLSearchParams(searchParams.toString());
     params.delete("product");
     params.delete("year");
+    params.delete("page");
 
     const trimmedProduct = product.trim();
     if (trimmedProduct) params.set("product", trimmedProduct);
@@ -61,8 +62,15 @@ export function RecallFilter({
   const hasFilter = Boolean(product.trim() || year);
 
   return (
-    <div className="mb-8 space-y-4">
-      <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+    <div className="mb-8 rounded-2xl border border-stone-200/80 bg-gradient-to-br from-white via-[#faf7f2] to-[#f6f1ea] p-5 sm:p-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-800/80">
+        Narrow it down
+      </p>
+      <p className="mt-1 text-sm text-zinc-600">
+        Search within this brand by product, lot, or recall number.
+      </p>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_160px]">
         <div>
           <label htmlFor="recall-product-search" className="sr-only">
             Search products in this brand
@@ -72,7 +80,7 @@ export function RecallFilter({
             type="search"
             value={product}
             onChange={(event) => setProduct(event.target.value)}
-            placeholder="Search product name, lot, or recall #…"
+            placeholder="Product name, lot, or recall #…"
             autoComplete="off"
             className={inputClassName}
           />
@@ -97,7 +105,7 @@ export function RecallFilter({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-600">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-600">
         <p>
           {hasFilter ? (
             <>
@@ -110,7 +118,7 @@ export function RecallFilter({
             </>
           )}
         </p>
-        {hasFilter && (
+        {hasFilter ? (
           <button
             type="button"
             onClick={() => {
@@ -121,12 +129,10 @@ export function RecallFilter({
           >
             Clear filters
           </button>
-        )}
-        {category && (
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
-            Category filter active
-          </span>
-        )}
+        ) : null}
+        {category ? (
+          <span className="text-xs text-zinc-400">Category filter active</span>
+        ) : null}
       </div>
     </div>
   );

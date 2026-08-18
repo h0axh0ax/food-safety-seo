@@ -3,13 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { Disclaimer } from "@/components/Disclaimer";
 import { JsonLd } from "@/components/JsonLd";
 import { RecallFilter } from "@/components/RecallFilter";
 import { RecallList } from "@/components/RecallList";
+import { Pagination } from "@/components/Pagination";
 import { CATEGORY_LABELS, isProductCategory } from "@/lib/categories";
 import { filterRecalls, getRecallYears } from "@/lib/recall-filter";
 import { buildDatasetJsonLd, buildFaqJsonLd } from "@/lib/seo";
+import { paginateItems, parsePageParam, RECALLS_PAGE_SIZE } from "@/lib/pagination";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
 import type { Brand, ProductCategory, Recall } from "@/lib/types";
@@ -21,8 +22,11 @@ interface BrandPageProps {
     q?: string;
     product?: string;
     year?: string;
+    page?: string;
+    from?: string;
   }>;
 }
+
 async function getBrand(slug: string): Promise<Brand | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -87,8 +91,8 @@ export async function generateMetadata({
     return { title: "Brand Not Found" };
   }
 
-  const title = `${brand.name} Food Recalls — Official FDA Records`;
-  const description = `Browse ${brand.total_recalls} official FDA food recall record(s) for ${brand.name}. Product descriptions, recall reasons, and classifications sourced from OpenFDA.`;
+  const title = `${brand.name} Food Recalls — Official Records`;
+  const description = `Browse ${brand.total_recalls} official food recall record(s) for ${brand.name}. Product descriptions, recall reasons, and classifications shown as published.`;
 
   return {
     title,
@@ -121,50 +125,62 @@ export default async function BrandRecallsPage({
     product: productQuery,
     year: yearFilter,
   });
+  const page = parsePageParam(query.page);
+  const paginated = paginateItems(filteredRecalls, page, RECALLS_PAGE_SIZE);
+  const paginationParams = {
+    category,
+    q: query.q?.trim() || undefined,
+    product: productQuery || undefined,
+    year: yearFilter || undefined,
+    from: query.from === "latest" ? "latest" : undefined,
+  };
   const availableYears = getRecallYears(recalls);
   const groupByYear = !productQuery && !yearFilter;
-  const backParams = new URLSearchParams();  if (category) backParams.set("category", category);
+  const fromLatest = query.from === "latest";
+  const backParams = new URLSearchParams();
+  if (category) backParams.set("category", category);
   if (query.q?.trim()) backParams.set("q", query.q.trim());
-  const backHref = backParams.size ? `/?${backParams.toString()}` : "/";
-  const backLabel = category ? CATEGORY_LABELS[category] : "All Brands";
+  const backHref = fromLatest
+    ? "/latest"
+    : backParams.size
+      ? `/browse?${backParams.toString()}`
+      : "/browse";
+  const backLabel = fromLatest
+    ? "Latest"
+    : category
+      ? CATEGORY_LABELS[category]
+      : "Directory";
 
   return (
     <>
       <JsonLd data={buildDatasetJsonLd(brand, recalls)} />
       {recalls.length > 0 && <JsonLd data={buildFaqJsonLd(brand, recalls)} />}
 
-      <div className="min-h-full bg-[#fafaf8]">
-        <header className="border-b border-zinc-200 bg-white">
-          <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-            <Link
-              href={backHref}
-              className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
-            >
-              ← {backLabel}
-            </Link>
-            <span className="text-xs font-medium uppercase tracking-widest text-zinc-400">
-              OpenFDA
-            </span>
-          </div>
-        </header>
+      <div className="bg-[#fafaf8]">
+        <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+          <Link
+            href={backHref}
+            className="inline-flex text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+          >
+            ← Back to {backLabel}
+          </Link>
 
-        <main className="mx-auto max-w-4xl px-6 py-10">
-          <div className="mb-10">
-            <p className="text-xs font-semibold uppercase tracking-widest text-red-700">
-              FDA Food Enforcement Records
+          <header className="mb-8 mt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-800/80">
+              For this brand
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+            <h1 className="mt-2 font-serif text-3xl tracking-tight text-zinc-900 sm:text-4xl">
               {brand.name}
             </h1>
-            <p className="mt-3 text-base text-zinc-600">
-              {recalls.length} official recall record
+            <p className="mt-3 text-base leading-relaxed text-zinc-600">
+              {recalls.length} recall record
               {recalls.length === 1 ? "" : "s"}
-              {category ? ` in ${CATEGORY_LABELS[category]}` : " on file"}
+              {category ? ` in ${CATEGORY_LABELS[category]}` : " on file"}.
             </p>
-          </div>
+          </header>
 
           {recalls.length === 0 ? (
-            <p className="rounded-xl border border-zinc-200 bg-white px-6 py-10 text-center text-zinc-500">
+            <p className="rounded-2xl border border-stone-200/80 bg-white/90 px-6 py-10 text-center text-zinc-500">
               No recall records found for this brand.
             </p>
           ) : (
@@ -178,12 +194,21 @@ export default async function BrandRecallsPage({
                   filteredCount={filteredRecalls.length}
                 />
               </Suspense>
-              <RecallList recalls={filteredRecalls} groupByYear={groupByYear} />
+              <RecallList
+                recalls={paginated.items}
+                groupByYear={groupByYear}
+                variant="brand"
+              />
+              <Pagination
+                basePath={`/recalls/${brand_slug}`}
+                params={paginationParams}
+                page={paginated.page}
+                totalPages={paginated.totalPages}
+                total={paginated.total}
+                noun="recalls"
+              />
             </>
           )}
-          <div className="mt-10">
-            <Disclaimer />
-          </div>
         </main>
       </div>
     </>

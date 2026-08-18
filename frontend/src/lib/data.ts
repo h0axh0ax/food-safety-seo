@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { BRANDS_PAGE_SIZE } from "@/lib/pagination";
 import type { Brand, ProductCategory } from "@/lib/types";
 
 const PAGE_SIZE = 1000;
@@ -98,4 +99,64 @@ export function filterBrandsByQuery<T extends { name: string; slug: string }>(
       brand.name.toLowerCase().includes(q) ||
       brand.slug.toLowerCase().includes(q),
   );
+}
+
+function escapeIlikePattern(value: string): string {
+  return value.replace(/[%_,]/g, "");
+}
+
+export async function getBrandsPage({
+  page = 1,
+  pageSize = BRANDS_PAGE_SIZE,
+  query,
+}: {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+}): Promise<{
+  brands: Brand[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}> {
+  const supabase = await createClient();
+  const safePage = Math.max(1, page);
+  const offset = (safePage - 1) * pageSize;
+  const q = query?.trim();
+
+  let dbQuery = supabase
+    .from("brands")
+    .select("*", { count: "exact" })
+    .order("name", { ascending: true })
+    .order("slug", { ascending: true })
+    .range(offset, offset + pageSize - 1);
+
+  if (q) {
+    const pattern = `%${escapeIlikePattern(q)}%`;
+    dbQuery = dbQuery.or(`name.ilike.${pattern},slug.ilike.${pattern}`);
+  }
+
+  const { data, error, count } = await dbQuery;
+
+  if (error || !data) {
+    return {
+      brands: [],
+      total: 0,
+      page: safePage,
+      pageSize,
+      totalPages: 1,
+    };
+  }
+
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  return {
+    brands: data as Brand[],
+    total,
+    page: safePage,
+    pageSize,
+    totalPages,
+  };
 }

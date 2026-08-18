@@ -6,14 +6,14 @@ export function buildDatasetJsonLd(brand: Brand, recalls: Recall[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: `${brand.name} FDA Food Recalls`,
-    description: `Official FDA food enforcement recall records for ${brand.name}, sourced from OpenFDA.`,
+    name: `${brand.name} Food Recalls`,
+    description: `Official food recall records for ${brand.name}, displayed as published by the source agency.`,
     url: `https://api.fda.gov/food/enforcement.json`,
     isAccessibleForFree: true,
     creator: {
       "@type": "Organization",
-      name: "U.S. Food and Drug Administration",
-      url: "https://www.fda.gov",
+      name: "CheckMyFood",
+      url: "https://checkmyfood.net",
     },
     distribution: [
       {
@@ -41,10 +41,12 @@ export function buildDatasetJsonLd(brand: Brand, recalls: Recall[]) {
 export function buildFaqJsonLd(brand: Brand, recalls: Recall[]) {
   const mainEntity = recalls.slice(0, 10).map((recall) => ({
     "@type": "Question",
-    name: `FDA Event ${recall.event_id}: Why was this ${brand.name} product recalled?`,
+    name: `Event ${recall.event_id}: Why was this ${brand.name} product recalled?`,
     acceptedAnswer: {
       "@type": "Answer",
-      text: recall.reason_for_recall ?? "No official reason provided in the FDA record.",
+      text:
+        recall.reason_for_recall ??
+        "No official reason provided in the source record.",
     },
   }));
 

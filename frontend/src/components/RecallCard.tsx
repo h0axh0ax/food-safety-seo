@@ -3,9 +3,12 @@ import { formatReportDate } from "@/lib/format";
 import type { Recall } from "@/lib/types";
 import Link from "next/link";
 
+export type RecallCardVariant = "brand" | "compact";
+
 interface RecallCardProps {
   recall: Recall;
   brandName?: string | null;
+  variant?: RecallCardVariant;
 }
 
 function DetailRow({ label, value }: { label: string; value: string | null }) {
@@ -13,11 +16,28 @@ function DetailRow({ label, value }: { label: string; value: string | null }) {
 
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-        {label}
-      </dt>
+      <dt className="text-xs font-medium text-zinc-500">{label}</dt>
       <dd className="mt-1 text-sm leading-relaxed text-zinc-900">{value}</dd>
     </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string | null }) {
+  if (!status?.trim()) return null;
+
+  const normalized = status.toLowerCase();
+  const isOngoing = normalized.includes("ongoing");
+
+  return (
+    <span
+      className={
+        isOngoing
+          ? "inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-200"
+          : "inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 ring-1 ring-inset ring-zinc-200"
+      }
+    >
+      {status}
+    </span>
   );
 }
 
@@ -33,83 +53,161 @@ function formatFirmLocation(recall: Recall): string | null {
   return parts.length ? parts.join(", ") : null;
 }
 
-export function RecallCard({ recall, brandName }: RecallCardProps) {
+function MetaSeparator() {
+  return (
+    <span className="hidden text-zinc-300 sm:inline" aria-hidden>
+      ·
+    </span>
+  );
+}
+
+export function RecallCard({
+  recall,
+  brandName,
+  variant = "brand",
+}: RecallCardProps) {
   const firmLocation = formatFirmLocation(recall);
+  const isCompact = variant === "compact";
+  const reportDate = formatReportDate(recall.report_date);
 
   return (
-    <article className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <ClassificationBadge classification={recall.classification} />
-        {brandName && (
-          <Link
-            href={`/recalls/${recall.brand_slug}`}
-            className="text-sm font-semibold text-red-800 hover:underline"
+    <article
+      id={`recall-${recall.event_id}`}
+      className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white/90 shadow-sm transition-colors hover:border-stone-300/80"
+    >
+      <div
+        className="absolute inset-y-0 left-0 w-1 bg-red-800/35"
+        aria-hidden
+      />
+
+      <div className={`relative ${isCompact ? "px-5 py-4 sm:px-6 sm:py-5" : "px-6 py-5 sm:px-7 sm:py-6"}`}>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+          <ClassificationBadge classification={recall.classification} />
+          <StatusBadge status={recall.status} />
+          <MetaSeparator />
+          <time
+            dateTime={recall.report_date ?? undefined}
+            className="text-sm text-zinc-600"
           >
-            {brandName}
-          </Link>
-        )}
-        {recall.recall_number && (
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Recall {recall.recall_number}
-          </span>
-        )}
-        <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Event {recall.event_id}
-        </span>
-        {recall.status && (
-          <span className="text-xs text-zinc-500">Status: {recall.status}</span>
-        )}
-      </div>
-
-      <dl className="space-y-4">
-        <DetailRow label="Product Description" value={recall.product_description} />
-        <DetailRow label="Code Info" value={recall.code_info} />
-        <DetailRow label="More Code Info" value={recall.more_code_info} />
-        <DetailRow label="Reason for Recall" value={recall.reason_for_recall} />
-        <DetailRow label="Product Quantity" value={recall.product_quantity} />
-        <DetailRow label="Distribution Pattern" value={recall.distribution_pattern} />
-        <DetailRow label="Voluntary / Mandated" value={recall.voluntary_mandated} />
-        <DetailRow
-          label="Initial Firm Notification"
-          value={recall.initial_firm_notification}
-        />
-        <DetailRow label="Product Type" value={recall.product_type} />
-        <DetailRow label="Recalling Firm Location" value={firmLocation} />
-
-        <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Report Date
-          </dt>
-          <dd className="mt-1 text-sm text-zinc-900">
-            {formatReportDate(recall.report_date)}
-          </dd>
+            {reportDate}
+          </time>
+          {recall.recall_number ? (
+            <>
+              <MetaSeparator />
+              <span className="text-xs text-zinc-500">
+                Recall {recall.recall_number}
+              </span>
+            </>
+          ) : null}
+          {isCompact && brandName ? (
+            <>
+              <MetaSeparator />
+              <Link
+                href={`/recalls/${recall.brand_slug}`}
+                className="text-sm font-semibold text-red-800 hover:underline"
+              >
+                {brandName}
+              </Link>
+            </>
+          ) : null}
         </div>
 
-        <DetailRow
-          label="Recall Initiation Date"
-          value={
-            recall.recall_initiation_date
-              ? formatReportDate(recall.recall_initiation_date)
-              : null
-          }
-        />
-        <DetailRow
-          label="Center Classification Date"
-          value={
-            recall.center_classification_date
-              ? formatReportDate(recall.center_classification_date)
-              : null
-          }
-        />
-        <DetailRow
-          label="Termination Date"
-          value={
-            recall.termination_date
-              ? formatReportDate(recall.termination_date)
-              : null
-          }
-        />
-      </dl>
+        <div className={isCompact ? "mt-3 space-y-2" : "mt-4 space-y-3"}>
+          <div>
+            <p className="text-xs font-medium text-zinc-500">
+              Product description
+            </p>
+            <p
+              className={`mt-1 leading-relaxed text-zinc-900 ${
+                isCompact
+                  ? "line-clamp-2 text-sm"
+                  : "text-base font-medium sm:text-[1.05rem]"
+              }`}
+            >
+              {recall.product_description?.trim() || "—"}
+            </p>
+          </div>
+
+          {recall.reason_for_recall?.trim() ? (
+            <div>
+              <p className="text-xs font-medium text-zinc-500">
+                Reason for recall
+              </p>
+              <p
+                className={`mt-1 leading-relaxed text-zinc-700 ${
+                  isCompact ? "line-clamp-2 text-sm" : "text-sm sm:text-base"
+                }`}
+              >
+                {recall.reason_for_recall}
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <details className="group mt-4">
+          <summary className="cursor-pointer list-none text-sm font-medium text-red-800 transition-colors hover:text-red-900 [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-1.5">
+              View full record
+              <span
+                className="text-xs text-zinc-400 transition-transform group-open:rotate-180"
+                aria-hidden
+              >
+                ▾
+              </span>
+            </span>
+          </summary>
+          <dl className="mt-4 space-y-4 border-t border-stone-200/70 pt-4">
+            <DetailRow label="Event ID" value={recall.event_id} />
+            <DetailRow label="Code info" value={recall.code_info} />
+            <DetailRow label="More code info" value={recall.more_code_info} />
+            <DetailRow
+              label="Product quantity"
+              value={recall.product_quantity}
+            />
+            <DetailRow
+              label="Distribution pattern"
+              value={recall.distribution_pattern}
+            />
+            <DetailRow
+              label="Voluntary / mandated"
+              value={recall.voluntary_mandated}
+            />
+            <DetailRow
+              label="Initial firm notification"
+              value={recall.initial_firm_notification}
+            />
+            <DetailRow label="Product type" value={recall.product_type} />
+            <DetailRow
+              label="Recalling firm location"
+              value={firmLocation}
+            />
+            <DetailRow
+              label="Recall initiation date"
+              value={
+                recall.recall_initiation_date
+                  ? formatReportDate(recall.recall_initiation_date)
+                  : null
+              }
+            />
+            <DetailRow
+              label="Center classification date"
+              value={
+                recall.center_classification_date
+                  ? formatReportDate(recall.center_classification_date)
+                  : null
+              }
+            />
+            <DetailRow
+              label="Termination date"
+              value={
+                recall.termination_date
+                  ? formatReportDate(recall.termination_date)
+                  : null
+              }
+            />
+          </dl>
+        </details>
+      </div>
     </article>
   );
 }

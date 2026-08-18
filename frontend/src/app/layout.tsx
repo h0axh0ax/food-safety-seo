@@ -3,17 +3,17 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Food Safety Recalls",
-    template: "%s | Food Safety Recalls",
+    default: "CheckMyFood — Food Recall Lookup",
+    template: "%s | CheckMyFood",
   },
   description:
-    "Official FDA food recall lookup powered by OpenFDA enforcement data.",
+    "Look up official food recall records by brand and product type.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col bg-[#fafaf8]">{children}</body>
     </html>
   );
 }

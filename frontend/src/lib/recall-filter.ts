@@ -54,3 +54,27 @@ export function groupRecallsByYear(
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([year, items]) => ({ year, recalls: items }));
 }
+
+export function groupRecallsByDate(
+  recalls: Recall[],
+): Array<{ date: string; recalls: Recall[] }> {
+  const groups = new Map<string, Recall[]>();
+
+  for (const recall of recalls) {
+    const date = recall.report_date?.trim() || "unknown";
+    const bucket = groups.get(date);
+    if (bucket) {
+      bucket.push(recall);
+    } else {
+      groups.set(date, [recall]);
+    }
+  }
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => {
+      if (a === "unknown") return 1;
+      if (b === "unknown") return -1;
+      return b.localeCompare(a);
+    })
+    .map(([date, items]) => ({ date, recalls: items }));
+}

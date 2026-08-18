@@ -1,16 +1,17 @@
-name: Sync FDA Recalls
+name: Full FDA Backfill
 
-# openFDA has no webhook — poll every 6 hours and upsert changes into Supabase.
+# Occasional full history refresh so older status changes are not missed
+# by the 45-day incremental sync.
 on:
   schedule:
-    # Every 6 hours: 00:00 / 06:00 / 12:00 / 18:00 UTC
-    # (08:00 / 14:00 / 20:00 / 02:00 UTC+8)
-    - cron: "0 */6 * * *"
+    # Every Sunday 08:00 UTC (16:00 UTC+8)
+    - cron: "0 8 * * 0"
   workflow_dispatch:
 
 jobs:
-  sync:
+  full-sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,8 +26,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Fetch openFDA and sync to Supabase
-        run: python scripts/run_sync.py
+      - name: Full openFDA fetch and sync to Supabase
+        run: python scripts/run_full_sync.py
         env:
           OPENFDA_API_KEY: ${{ secrets.OPENFDA_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
