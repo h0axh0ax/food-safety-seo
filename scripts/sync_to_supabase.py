@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from supabase import Client, create_client
 
 from categorize import categorize_product
+from data_quality import is_digit_placeholder, is_official_recall_number
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
@@ -75,15 +76,20 @@ def parse_fda_date(value: str | None) -> str | None:
 
 
 def resolve_recall_number(item: dict) -> str | None:
+    """Prefer official openFDA recall_number. Never store bare numeric event_id."""
     recall_number = str(item.get("recall_number") or "").strip()
-    if recall_number:
+    if is_official_recall_number(recall_number):
+        return recall_number
+    # Rare non-standard official values: keep if present and not a digit placeholder.
+    if recall_number and not is_digit_placeholder(recall_number):
         return recall_number
 
     event_id = str(item.get("event_id") or "").strip()
     product = str(item.get("product_description") or "").strip()
     if event_id and product:
+        # Last-resort synthetic key — monitoring flags these if they pile up.
         return f"{event_id}:{product}"
-    return event_id or None
+    return None
 
 
 def chunked(items: list, size: int):
