@@ -14,12 +14,23 @@ const navLinks = [
     isActive: (pathname: string) =>
       pathname === "/" ||
       pathname.startsWith("/browse") ||
-      pathname.startsWith("/recalls/"),
+      pathname.startsWith("/recalls/") ||
+      pathname.startsWith("/search"),
   },
   {
     href: "/latest",
     label: "Latest",
     isActive: (pathname: string) => pathname.startsWith("/latest"),
+  },
+  {
+    href: "/guides",
+    label: "Guides",
+    isActive: (pathname: string) => pathname.startsWith("/guides"),
+  },
+  {
+    href: "/library",
+    label: "Library",
+    isActive: (pathname: string) => pathname.startsWith("/library"),
   },
   {
     href: "/about",

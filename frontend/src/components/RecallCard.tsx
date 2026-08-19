@@ -1,4 +1,5 @@
 import { ClassificationBadge } from "@/components/ClassificationBadge";
+import { LinkedRecallReason } from "@/components/LinkedRecallReason";
 import { formatReportDate } from "@/lib/format";
 import type { Recall } from "@/lib/types";
 import Link from "next/link";
@@ -138,7 +139,7 @@ export function RecallCard({
                   isCompact ? "line-clamp-2 text-sm" : "text-sm sm:text-base"
                 }`}
               >
-                {recall.reason_for_recall}
+                <LinkedRecallReason reason={recall.reason_for_recall} />
               </p>
             </div>
           ) : null}

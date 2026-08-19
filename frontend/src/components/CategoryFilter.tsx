@@ -7,6 +7,7 @@ import type { ProductCategory } from "@/lib/types";
 type CategoryFilterProps = {
   active: ProductCategory | "all";
   query?: string;
+  sort?: string;
 };
 
 function chipClass(isActive: boolean): string {
@@ -15,7 +16,7 @@ function chipClass(isActive: boolean): string {
     : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50";
 }
 
-export function CategoryFilter({ active, query }: CategoryFilterProps) {
+export function CategoryFilter({ active, query, sort }: CategoryFilterProps) {
   return (
     <div className="mb-6">
       <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
@@ -31,7 +32,11 @@ export function CategoryFilter({ active, query }: CategoryFilterProps) {
         {CATEGORY_ORDER.map((slug) => (
           <Link
             key={slug}
-            href={browseHref({ category: slug, query })}
+            href={browseHref({
+              category: slug,
+              query,
+              sort,
+            })}
             className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${chipClass(active === slug)}`}
           >
             {CATEGORY_LABELS[slug]}

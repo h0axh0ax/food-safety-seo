@@ -11,8 +11,10 @@ export function Disclaimer({ variant = "inline" }: DisclaimerProps) {
           <p className="mt-3">
             Recall information on this site is drawn from official public
             enforcement and alert databases. Fields are displayed verbatim
-            without modification. Which agencies and feeds are in use is
-            described on our{" "}
+            without modification. Educational library pages also reference
+            public consumer materials from agencies such as the CDC and other
+            U.S. public-health sources. Which feeds and linked sources are in
+            use is described on our{" "}
             <a
               href="/about#data-display"
               className="font-medium text-red-800 hover:underline"
@@ -48,14 +50,13 @@ export function Disclaimer({ variant = "inline" }: DisclaimerProps) {
 
         <section>
           <h2 className="text-lg font-semibold text-zinc-900">
-            Accuracy and timeliness
+            Accuracy and updates
           </h2>
           <p className="mt-3">
-            We refresh recent records every 6 hours, and run a full history
-            refresh once a week. Records may still be incomplete, delayed, or
-            superseded by updates at the original publishing agency. Always
-            verify critical information with official sources or a qualified
-            professional.
+            We keep records up to date from official public sources. Records may
+            still be incomplete, delayed, or superseded by updates at the
+            original publishing agency. Always verify critical information with
+            official sources or a qualified professional.
           </p>
         </section>
 

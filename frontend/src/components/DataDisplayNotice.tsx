@@ -3,9 +3,10 @@ const DATA_NOTICE = {
   points: [
     "Recall information is sourced from official public enforcement and alert databases.",
     "Product descriptions, reasons, classifications, and other fields are shown as published—we do not rewrite or summarize official text.",
+    "When a reason for recall mentions a topic in our food safety library, matching words may link to those educational pages. The official wording itself is unchanged.",
     "List views show a summary first. Use “View full record” to see every field supplied in the source data.",
     "A recall listed under a brand name reflects how the recalling firm appears in official records; it does not mean every product from that brand is affected.",
-    "Data is refreshed every 6 hours from official public sources, with a full history refresh once a week. Status and new records can still lag behind the original agency. Check the primary source when timing matters.",
+    "Data is kept up to date from official public sources. Status and new records can still lag behind the original agency. Check the primary source when timing matters.",
     "CheckMyFood is not affiliated with any government agency and does not provide medical, legal, or safety advice.",
   ],
 } as const;
@@ -38,6 +39,13 @@ export function DataDisplayNotice({
       </ul>
       <p className="mt-4 text-xs text-zinc-500">
         <a
+          href="/guides"
+          className="font-medium text-red-800 hover:underline"
+        >
+          How to read classes & fields
+        </a>
+        {" · "}
+        <a
           href="/about#data-display"
           className="font-medium text-red-800 hover:underline"
         >
@@ -55,9 +63,13 @@ export function DataDisplayNotice({
 export function DataDisplayNoticeCompact({ className = "" }: { className?: string }) {
   return (
     <p className={`text-xs leading-relaxed text-zinc-500 ${className}`}>
-      Records are shown verbatim from official public sources. This list is
-      refreshed every 6 hours. Summaries on this page; expand each item for the
+      Records are shown verbatim from official public sources and are kept up
+      to date. Summaries on this page; expand each item for the
       full record.{" "}
+      <a href="/guides" className="font-medium text-red-800 hover:underline">
+        How to read records
+      </a>
+      {" · "}
       <a href="/about#data-display" className="font-medium text-red-800 hover:underline">
         Data sources
       </a>

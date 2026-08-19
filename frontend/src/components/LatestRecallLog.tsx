@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ClassificationBadge } from "@/components/ClassificationBadge";
+import { LinkedRecallReason } from "@/components/LinkedRecallReason";
 import { formatReportDateLong, isClassI } from "@/lib/format";
 import { groupRecallsByDate } from "@/lib/recall-filter";
 import type { Recall } from "@/lib/types";
@@ -62,16 +63,9 @@ function LatestRow({
       </p>
       {recall.reason_for_recall?.trim() ? (
         <p className="mt-1 line-clamp-1 text-sm text-zinc-500">
-          {recall.reason_for_recall}
+          <LinkedRecallReason reason={recall.reason_for_recall} />
         </p>
       ) : null}
-
-      <Link
-        href={`/recalls/${recall.brand_slug}?from=latest`}
-        className="mt-2 inline-flex text-sm font-medium text-red-800 hover:underline"
-      >
-        Open brand record →
-      </Link>
     </li>
   );
 }

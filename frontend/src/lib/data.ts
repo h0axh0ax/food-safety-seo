@@ -8,6 +8,8 @@ export type BrandInCategory = {
   name: string;
   slug: string;
   category_recall_count: number;
+  /** Newest report_date among recalls in this category (YYYY-MM-DD). */
+  latest_report_date: string | null;
 };
 
 export async function getAllBrands(): Promise<Brand[]> {
@@ -49,7 +51,7 @@ export async function getBrandsByCategory(
   while (true) {
     const { data, error } = await supabase
       .from("recalls")
-      .select("brand_slug, brands(name, slug)")
+      .select("brand_slug, report_date, brands(name, slug)")
       .eq("primary_category", category)
       .order("brand_slug", { ascending: true })
       .order("id", { ascending: true })
@@ -59,6 +61,10 @@ export async function getBrandsByCategory(
 
     for (const row of data) {
       const slug = row.brand_slug as string;
+      const reportDate =
+        typeof row.report_date === "string" && row.report_date.trim()
+          ? row.report_date.trim()
+          : null;
       const brandsRaw = row.brands as
         | { name: string; slug: string }
         | { name: string; slug: string }[]
@@ -69,11 +75,19 @@ export async function getBrandsByCategory(
 
       if (existing) {
         existing.category_recall_count += 1;
+        if (
+          reportDate &&
+          (!existing.latest_report_date ||
+            reportDate > existing.latest_report_date)
+        ) {
+          existing.latest_report_date = reportDate;
+        }
       } else {
         bySlug.set(slug, {
           slug,
           name,
           category_recall_count: 1,
+          latest_report_date: reportDate,
         });
       }
     }
@@ -82,9 +96,7 @@ export async function getBrandsByCategory(
     offset += PAGE_SIZE;
   }
 
-  return [...bySlug.values()].sort(
-    (a, b) => b.category_recall_count - a.category_recall_count,
-  );
+  return [...bySlug.values()];
 }
 
 export function filterBrandsByQuery<T extends { name: string; slug: string }>(

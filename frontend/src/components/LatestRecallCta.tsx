@@ -16,15 +16,15 @@ export function LatestRecallCta() {
         <SectionIntro
           id="latest-heading"
           className="mb-0"
-          eyebrow="Recent records"
-          title="Newest 50 on file"
-          description="A short window of the most recently reported recalls—separate from the full brand directory."
+          eyebrow="Latest"
+          title="Latest recalls"
+          description="A short list of the most recently reported recalls—separate from the full brand directory."
         />
         <Link
           href="/latest"
           className="inline-flex shrink-0 items-center justify-center self-start rounded-full border border-red-800/15 bg-white/80 px-6 py-3 text-sm font-medium text-red-900 shadow-sm transition hover:border-red-800/25 hover:bg-white lg:self-center"
         >
-          View newest 50 →
+          View latest recalls →
         </Link>
       </div>
     </section>

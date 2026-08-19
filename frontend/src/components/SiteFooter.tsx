@@ -4,13 +4,13 @@ import { SiteLogo } from "@/components/SiteLogo";
 
 const browseLinks = [
   { href: "/", label: "Directory" },
-  { href: "/latest", label: "Latest Recalls" },
-  { href: "/browse", label: "All Brands" },
+  { href: "/latest", label: "Latest" },
+  { href: "/guides", label: "Guides" },
+  { href: "/library", label: "Library" },
 ] as const;
 
 const legalLinks = [
   { href: "/about", label: "About" },
-  { href: "/about#data-display", label: "How we display data" },
   { href: "/disclaimer", label: "Disclaimer" },
 ] as const;
 

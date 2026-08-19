@@ -7,9 +7,9 @@ import { isClassI } from "@/lib/format";
 import { getLatestRecalls } from "@/lib/latest-recalls";
 
 export const metadata: Metadata = {
-  title: "Newest Recall Records — 50 Most Recently Reported",
+  title: "Latest Recalls — CheckMyFood",
   description:
-    "The 50 most recently reported food recall records, sorted by official report date.",
+    "A short list of the most recently reported food recall records. Kept up to date from official sources.",
 };
 
 export default async function LatestRecallsPage() {
@@ -26,15 +26,14 @@ export default async function LatestRecallsPage() {
       <header className="border-b border-stone-200/80 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-800/80">
-            Recent window
+            Latest
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-            Newest 50 records
+            Latest recalls
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-zinc-600">
-            A short list of the most recently reported recalls, by official
-            report date. This is not the full directory. Records here are
-            refreshed every 6 hours.
+            A short list of the most recently reported recalls. This is not the
+            full directory. This list is kept up to date from official sources.
           </p>
           <p className="mt-4 text-sm text-zinc-600">
             <Link
@@ -44,7 +43,7 @@ export default async function LatestRecallsPage() {
               Browse all brands
             </Link>
             {" · "}
-            {recalls.length} in this window
+            {recalls.length} shown here
             {classICount > 0 ? ` · ${classICount} Class I` : ""}
             {ongoingCount > 0 ? ` · ${ongoingCount} ongoing` : ""}
           </p>

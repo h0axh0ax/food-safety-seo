@@ -3,11 +3,16 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { BrandListLinks } from "@/components/BrandListLinks";
+import { BrandSortControl } from "@/components/BrandSortControl";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { DirectorySearch } from "@/components/DirectorySearch";
 import { PageHero } from "@/components/PageHero";
 import { Pagination } from "@/components/Pagination";
-import { sortBrandListItems } from "@/lib/brand-sort";
+import {
+  brandSortLabel,
+  parseBrandSortParam,
+  sortBrandListItems,
+} from "@/lib/brand-sort";
 import { CATEGORY_LABELS, isProductCategory } from "@/lib/categories";
 import {
   filterBrandsByQuery,
@@ -22,7 +27,12 @@ import {
 import type { ProductCategory } from "@/lib/types";
 
 interface BrowsePageProps {
-  searchParams: Promise<{ q?: string; page?: string; category?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    category?: string;
+    sort?: string;
+  }>;
 }
 
 export async function generateMetadata({
@@ -57,6 +67,8 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
     : "all";
   const searchQuery = params.q?.trim() ?? "";
   const page = parsePageParam(params.page);
+  const sortMode = parseBrandSortParam(params.sort);
+  const showSortControls = activeCategory !== "all";
 
   if (activeCategory !== "all") {
     const categoryBrands = await getBrandsByCategory(activeCategory);
@@ -66,12 +78,15 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
         slug: brand.slug,
         name: brand.name,
         count: brand.category_recall_count,
+        latestReportDate: brand.latest_report_date,
       })),
+      sortMode,
     );
     const paginated = paginateItems(brandItems, page, BRANDS_PAGE_SIZE);
     const paginationParams = {
       category: activeCategory,
       q: searchQuery || undefined,
+      sort: sortMode !== "default" ? sortMode : undefined,
     };
 
     return (
@@ -86,13 +101,25 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
             ← Back to home
           </Link>
 
-          <CategoryFilter active={activeCategory} query={searchQuery} />
+          <CategoryFilter
+            active={activeCategory}
+            query={searchQuery}
+            sort={sortMode}
+          />
 
           <Suspense fallback={null}>
             <DirectorySearch
               placeholder={`Search brands in ${CATEGORY_LABELS[activeCategory]}…`}
             />
           </Suspense>
+
+          {showSortControls ? (
+            <BrandSortControl
+              category={activeCategory}
+              active={sortMode}
+              query={searchQuery}
+            />
+          ) : null}
 
           <p className="mb-4 text-sm text-zinc-600">
             {searchQuery ? (
@@ -102,6 +129,8 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
                 <span className="font-medium text-zinc-900">
                   {CATEGORY_LABELS[activeCategory]}
                 </span>
+                {" · "}
+                {brandSortLabel(sortMode)}
               </>
             ) : (
               <>
@@ -109,7 +138,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
                 <span className="font-medium text-zinc-900">
                   {CATEGORY_LABELS[activeCategory]}
                 </span>{" "}
-                recalls · sorted by most recalls
+                recalls · {brandSortLabel(sortMode)}
               </>
             )}
           </p>

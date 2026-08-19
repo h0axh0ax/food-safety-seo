@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { classificationTone } from "@/lib/format";
 
 const toneStyles = {
@@ -9,16 +11,29 @@ const toneStyles = {
 
 interface ClassificationBadgeProps {
   classification: string | null;
+  /** When true, badge links to the class definitions guide. */
+  linkToGuide?: boolean;
 }
 
-export function ClassificationBadge({ classification }: ClassificationBadgeProps) {
+export function ClassificationBadge({
+  classification,
+  linkToGuide = true,
+}: ClassificationBadgeProps) {
   const tone = classificationTone(classification);
+  const label = classification ?? "Unclassified";
+  const className = `inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${toneStyles[tone]}`;
+
+  if (!linkToGuide) {
+    return <span className={className}>{label}</span>;
+  }
 
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${toneStyles[tone]}`}
+    <Link
+      href="/guides#classification"
+      className={`${className} transition-opacity hover:opacity-90`}
+      title="What do Class I / II / III mean?"
     >
-      {classification ?? "Unclassified"}
-    </span>
+      {label}
+    </Link>
   );
 }

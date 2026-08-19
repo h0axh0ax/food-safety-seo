@@ -5,7 +5,7 @@ import { DataDisplayNotice } from "@/components/DataDisplayNotice";
 export const metadata: Metadata = {
   title: "About CheckMyFood",
   description:
-    "How CheckMyFood works, where recall data comes from, and how records are displayed.",
+    "How CheckMyFood works, where recall and educational content come from, and how records are displayed.",
 };
 
 export default function AboutPage() {
@@ -63,7 +63,8 @@ export default function AboutPage() {
         <section id="data-display">
           <h2 className="text-xl font-semibold text-zinc-900">Data sources</h2>
           <p className="mt-3 leading-relaxed text-zinc-600">
-            Records are aggregated from official public databases.{" "}
+            <strong className="font-medium text-zinc-800">Recall records</strong>{" "}
+            come from official public enforcement databases.{" "}
             <strong className="font-medium text-zinc-800">
               Currently included:
             </strong>{" "}
@@ -81,13 +82,31 @@ export default function AboutPage() {
           <p className="mt-3 leading-relaxed text-zinc-600">
             Product descriptions, recall reasons, classifications, and other
             fields are displayed verbatim—we do not rewrite or summarize
-            official text from the source record.
+            official text from the source record. To learn what classes, status
+            values, and field names mean, see{" "}
+            <a href="/guides" className="font-medium text-red-800 hover:underline">
+              How to read a recall record
+            </a>
+            , which quotes FDA definitions and links to openFDA field docs.
           </p>
           <p className="mt-3 leading-relaxed text-zinc-600">
-            We refresh this database every 6 hours for recent recalls and
-            ongoing status changes. A full history refresh also runs once a
-            week. The original agency may publish sooner, so this site can lag
-            behind official sources.
+            <strong className="font-medium text-zinc-800">
+              Educational pages
+            </strong>{" "}
+            (our{" "}
+            <a href="/library" className="font-medium text-red-800 hover:underline">
+              Food safety library
+            </a>{" "}
+            and related explainers) are written for the public and link to
+            consumer materials published by agencies such as the{" "}
+            <strong className="font-medium text-zinc-800">CDC</strong>,{" "}
+            FoodSafety.gov (FDA/USDA/CDC), MedlinePlus (NIH), EPA, and FDA.
+            Those pages are for general education only—not medical advice—and
+            are not a substitute for the linked official sources.
+          </p>
+          <p className="mt-3 leading-relaxed text-zinc-600">
+            We keep this database up to date from official public sources so
+            recent recalls and status changes stay current.
           </p>
           <div className="mt-6">
             <DataDisplayNotice showTitle={false} className="border-none bg-transparent p-0 shadow-none" />
