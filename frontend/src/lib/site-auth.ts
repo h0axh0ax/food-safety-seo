@@ -12,11 +12,8 @@ export async function createSiteAuthToken(password: string): Promise<string> {
 
 export function getSitePassword(): string | undefined {
   const configured = process.env.SITE_PASSWORD?.trim();
-  if (configured === "off" || configured === "false") {
+  if (!configured || configured === "off" || configured === "false") {
     return undefined;
   }
-  if (configured) {
-    return configured;
-  }
-  return "998998";
+  return configured;
 }
