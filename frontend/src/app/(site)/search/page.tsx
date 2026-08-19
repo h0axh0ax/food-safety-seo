@@ -5,7 +5,7 @@ import { getBrandsPage } from "@/lib/data";
 import { searchSiteContent, type SiteSearchHit } from "@/lib/site-search";
 
 export const metadata: Metadata = {
-  title: "Search — CheckMyFood",
+  title: "Search",
   description:
     "Search brands, product categories, food safety library topics, and recall reading guides.",
 };

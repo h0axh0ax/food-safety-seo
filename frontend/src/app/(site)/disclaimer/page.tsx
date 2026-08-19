@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Disclaimer } from "@/components/Disclaimer";
 
 export const metadata: Metadata = {
-  title: "Disclaimer — CheckMyFood",
+  title: "Disclaimer",
   description:
     "Legal disclaimer for CheckMyFood: data sources, limitations, and independence from government agencies.",
 };

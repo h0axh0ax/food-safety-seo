@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { DataDisplayNotice } from "@/components/DataDisplayNotice";
 
 export const metadata: Metadata = {
-  title: "About CheckMyFood",
+  title: "About",
   description:
     "How CheckMyFood works, where recall and educational content come from, and how records are displayed.",
 };

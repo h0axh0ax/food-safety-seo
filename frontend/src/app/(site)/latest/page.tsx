@@ -7,7 +7,7 @@ import { isClassI } from "@/lib/format";
 import { getLatestRecalls } from "@/lib/latest-recalls";
 
 export const metadata: Metadata = {
-  title: "Latest Recalls — CheckMyFood",
+  title: "Latest Recalls",
   description:
     "A short list of the most recently reported food recall records. Kept up to date from official sources.",
 };
