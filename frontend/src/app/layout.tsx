@@ -12,6 +12,14 @@ export const metadata: Metadata = {
   },
   description:
     "Look up official food recall records by brand and product type.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
