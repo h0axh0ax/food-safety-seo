@@ -1,6 +1,7 @@
 import type { Brand, Recall } from "@/lib/types";
 
 const OPENFDA_SOURCE = "https://api.fda.gov/food/enforcement.json";
+const OPENFDA_LICENSE = "https://open.fda.gov/license/";
 
 export function buildDatasetJsonLd(brand: Brand, recalls: Recall[]) {
   return {
@@ -9,6 +10,7 @@ export function buildDatasetJsonLd(brand: Brand, recalls: Recall[]) {
     name: `${brand.name} Food Recalls`,
     description: `Official food recall records for ${brand.name}, displayed as published by the source agency.`,
     url: `https://api.fda.gov/food/enforcement.json`,
+    license: OPENFDA_LICENSE,
     isAccessibleForFree: true,
     creator: {
       "@type": "Organization",
