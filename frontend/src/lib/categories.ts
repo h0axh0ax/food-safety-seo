@@ -2,6 +2,7 @@ import type { ProductCategory } from "@/lib/types";
 
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   infant_child: "Infant & Child Food",
+  pet_food: "Pet Food",
   supplements: "Supplements",
   dairy: "Dairy",
   meat_seafood: "Meat & Seafood",
@@ -17,6 +18,8 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
 export const CATEGORY_SUBTITLES: Record<ProductCategory, string> = {
   infant_child:
     "Baby food, formula, and other products made for infants and kids.",
+  pet_food:
+    "Dog food, cat food, pet treats, and other animal food recall records.",
   dairy: "Milk, cheese, yogurt, butter, ice cream, and other dairy foods.",
   produce: "Fresh fruits, vegetables, salads, and other produce.",
   meat_seafood: "Chicken, beef, pork, fish, shrimp, and other meat or seafood.",
@@ -31,6 +34,7 @@ export const CATEGORY_SUBTITLES: Record<ProductCategory, string> = {
 
 export const CATEGORY_ORDER: ProductCategory[] = [
   "infant_child",
+  "pet_food",
   "dairy",
   "produce",
   "meat_seafood",

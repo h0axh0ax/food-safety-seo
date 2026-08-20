@@ -19,6 +19,7 @@ export const CATEGORY_HERO_POSITION: Partial<
   Record<ProductCategory, string>
 > = {
   infant_child: "72% center",
+  pet_food: "72% center",
   dairy: "72% center",
   produce: "72% center",
   meat_seafood: "65% 58%",

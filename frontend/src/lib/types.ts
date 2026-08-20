@@ -8,6 +8,7 @@ export interface Brand {
 
 export type ProductCategory =
   | "infant_child"
+  | "pet_food"
   | "supplements"
   | "dairy"
   | "meat_seafood"
